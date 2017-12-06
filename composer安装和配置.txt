@@ -1,0 +1,106 @@
+安装 - *nix（unix或者linux）
+
+1.获取Composer文件
+curl -sS https://getcomposer.org/installer | php
+
+注意：如果上述方法由于某些原因失败了，你还可以通过 php > 下载
+php -r "readfile('https://getcomposer.org/installer');" | php
+
+这将检测一些 PHP 的设置，然后下载 composer.phar 到你的工作目录中。这是Composer 的二进制文件。这是一个 phar 包（php的归档），这是PHP的归档格式可以帮助用户在命令行中执行一些操作。
+
+你可以通过 --installer-dir 选项指定 Composer 的安装目录 （它可以是一个绝对或者相对路径）：
+curl -sS https://getcomposer.org/installer | php -- -- installer-dir=bin
+
+全局安装：
+你可以将此文件放在任何地方。如果你把它放在系统的 PATH 目录中，你就能在全局访问它。在类Unix系统中，你甚至可以在使用时不加 php 前缀。
+
+你可以执行这些命令让 composer 在你的系统中进行全局调用：
+
+curl -sS https://getcomposer.org/installer | php
+mv composer.phar /usr/local/bin/composer
+
+注意：如果上述命令因为权限执行失败，请使用 sudo 再次尝试运行 mv 那行命令。
+
+进行全局安装后，现在只需要运行 composer 命令就可以使用 Composer 而不需要输入 php composer.phar。
+
+windows下安装
+方法1.使用安装程序安装
+	这是将 Composer 安装在你的机器上的最简单的方法。
+	下载并且运行 Compose-Setup.exe，它将安装最新版本的Composer，并设置好系统的环境变量，因此你可以在任何目录下直接使用 composer 命令。
+
+方法2.手动安装
+	全局安装：
+	设置系统的环境变量 PATH 并运行安装命令下载 composer.phar文件：
+	c:\Users\username\>cd C:\bin
+	c:\bin>php -r "readfile('https://getcomposer.org/installer');" | php
+
+	注意：如果收到readfile错误提示，请使用 http 链接或者在 php.ini 文件中打开 php_openssl.dll。
+
+	在 composer.phar 同级目录下新建文件 composer.bat：
+	c:\bin>echo @php "%~dp0composer.phar" %*>composer.bat
+
+	关闭当前的命令行窗口，打开新的命令行窗口进行测试：
+	c:\User\username>composer -V
+	Composer version *****
+
+	先局部安装再配置全局使用：
+	F:\projects\composer > php -r "readfile('https://getcomposer.org/installer');" | php
+
+	将composer的安装路径（这里是F:\projects\composer\）加到 系统环境变量 PATH 中 .
+
+	打开命令行窗口执行 set path=C:\ 关闭命令行窗口再重新打开命令行窗口，就可以在任何地方使用composer命令
+
+
+使用 Composer 
+	现在我们将使用 Composer 来安装项目的依赖。
+	要解决和下载依赖，请执行 install 命令：
+	php composer.phar install
+	如果你进行了全局安装，并且没有 phar 文件在当前目录，请使用下面的命令代替：
+	composer install
+
+	注意:执行上面的命令时，如果你当前的目录中没有 composer.josn文件，将会报错提示 当前目录没有 composer.json文件，因此你需要在当前目录创建一个 composer.json文件并配置你所需要下载和安装的依赖包名称和版本。
+
+
+在项目中使用 composer 来自动加载
+	你只需要将下面这行代码添加到你的项目的引导文件中：
+
+	require 'vendor/autoload.php';
+
+	composer将会自动帮你加载你所需要的依赖文件。
+
+
+
+修改镜像为国内镜像提高速度
+有两种方法启用本镜像服务：
+--系统全局配置：即将配置信息添加到composer的全局配置文件 config.json文件中。见“方法一”
+--当个项目配置：将配置信息添加到某个项目的 composer.json文件中。见“方法二”
+
+方法一：修改 composer 的全局配置文件（推荐方式）
+打开命令行窗口（windows用户）或控制台（Linux、Mac用户）并执行如下命令：
+composer config -g repo.packagist composer https://packagist.phpcomposer.com
+
+执行上面的命令后，将会在你的C:\Users\username\Appdata\composer\目录中生成一个 config.json文件（如果已经有config.json文件的话就修改该文件），并将镜像配置信息写入到 config.json文件中。
+
+方法二：修改当前项目的 composer.json  配置文件：
+打开命令行窗口（windows用户）或控制台（Linux、Mac用户）并执行如下命令：
+composer config repo.packagist composer https://packagist.phpcomposer.com
+
+上述明亮将会在当前目录中的 composer.json 文件的末尾自动添加镜像的配置信息（你也可以手动添加）：
+{
+	"repositories":{
+		"packagist"：{
+			"type":"composer",
+			"url":"https://packagist.phpcomposer.com"
+		}
+	}
+}
+
+
+镜像原理：
+
+一般情况下，安装包的数据（主要是 zip 文件）一般是从 github.com 上下载的，安装包的元数据是从 packagist.org 上下载的。
+
+然而，由于众所周知的原因，国外的网站连接速度很慢，并且随时可能被“墙”甚至“不存在”。
+
+“Packagist 中国全量镜像”所做的就是缓存所有安装包和元数据到国内的机房并通过国内的 CDN 进行加速，这样就不必再去向国外的网站发起请求，从而达到加速 composer install 以及 composer update 的过程，并且更加快速、稳定。因此，即使 packagist.org、github.com 发生故障（主要是连接速度太慢和被墙），你仍然可以下载、更新安装包。
+
